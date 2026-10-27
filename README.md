@@ -2,7 +2,7 @@
 ==================================
 
 This project provides support for executing a [DistCC](http://distcc.org) worker in a [Docker](http://docker.com) environment, supporting all major compilers' every accessible LTS-available version on the platform.
-Put simply, this allows using a single DistCC environment, using, e.g., an Ubuntu 20.04 base image, to run the major compilers available under Ubuntu 20.04, 22.04, and 24.04 LTSes simultaneously.
+Put simply, this allows using a single DistCC environment, using, e.g., an Ubuntu 20.04 base image, to run the major compilers available under Ubuntu 20.04, 22.04, 24.04, and 26.04 LTSes simultaneously.
 
 
 

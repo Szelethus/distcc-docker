@@ -24,6 +24,7 @@ apt-get update -y
 #   *  Ubuntu 20.04 "Focal Fossa":      GCC/G++  9        Clang 10
 #   *  Ubuntu 22.04 "Jammy Jellyfish":  GCC/G++ 11        Clang 14
 #   *  Ubuntu 24.04 "Noble Numbat":     GCC/G++ 13        Clang 18
+#   *  Ubuntu 26.04 "Resolute Raccoon": GCC/G++ 15        Clang 21
 
 
 OS_RELEASE="$(lsb_release -c | cut -d ':' -f 2 | xargs)"
@@ -50,6 +51,9 @@ if [[ "$OS_RELEASE" == "focal" ]]; then
   echo "deb [signed-by=/etc/apt/keyrings/llvm-snapshot.gpg]" \
     "http://apt.llvm.org/focal/ llvm-toolchain-focal-18 main" \
     > "/etc/apt/sources.list.d/apt-llvm-org-focal-llvm-toolchain-focal-18.list"
+  echo "deb [signed-by=/etc/apt/keyrings/llvm-snapshot.gpg]" \
+    "http://apt.llvm.org/focal/ llvm-toolchain-focal-21 main" \
+    > "/etc/apt/sources.list.d/apt-llvm-org-focal-llvm-toolchain-focal-21.list"
 
   echo "deb [signed-by=/etc/apt/keyrings/ubuntu-toolchain-r.gpg]" \
     "http://ppa.launchpad.net/ubuntu-toolchain-r/test/ubuntu/ focal main" \
@@ -71,7 +75,8 @@ if [[ "$OS_RELEASE" == "focal" ]]; then
     gcc       g++       clang \
     gcc-9     g++-9     clang-10 \
     gcc-11    g++-11    clang-14 \
-    gcc-13    g++-13    clang-18
+    gcc-13    g++-13    clang-18 \
+    gcc-15    g++-15    clang-21
 
   apt-get purge -y --auto-remove \
     ca-certificates \
