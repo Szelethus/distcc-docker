@@ -89,13 +89,24 @@ jobs:
                 bash -c "set -x; sleep 120; exit;"
 
           sleep 10
-          STAT_RESULT="$(curl "http://localhost:3633" | grep "dcc_free_mem")"
+          # Do not let a transient "grep" miss abort the step under "set -e":
+          # that would skip the teardown below and orphan the container,
+          # leaving port 3632/3633 bound for the next step. The explicit
+          # emptiness check handles the "not reported" case instead.
+          STAT_RESULT="$(curl "http://localhost:3633" | grep "dcc_free_mem" || true)"
           if [ -z "$STAT_RESULT" ]; then
             echo "Server did not report 'dcc_free_mem'!" >&2
             exit 1
           fi
 
           docker kill "distcc-1"
+
+          # "docker kill" only sends the signal; with "--rm" the container and
+          # its published-port bindings are torn down asynchronously. Wait for
+          # the name to disappear so the next step can rebind 3632/3633.
+          while docker ps -a --format '{{.Names}}' | grep -qx "distcc-1"; do
+            sleep 1
+          done
       - name: "Test compilation in the container"
         run: |
           set -ex
