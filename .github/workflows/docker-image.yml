@@ -16,7 +16,7 @@ on:
 jobs:
   lint:
     name: "Lint"
-    runs-on: "ubuntu-20.04"
+    runs-on: "ubuntu-latest"
     steps:
       - uses: "actions/checkout@v4"
       - name: "Download ShellCheck"
@@ -52,22 +52,22 @@ jobs:
   build:
     name: "Build ${{ github.event_name == 'workflow_dispatch' && inputs.release && 'and Deploy' || '' }} Docker Image"
     env:
-      RUNS_ON: "ubuntu-20.04"
+      IMAGE_TAG: "ubuntu-20.04"
     permissions:
       packages: "write"
-    runs-on: "ubuntu-20.04"
+    runs-on: "ubuntu-latest"
     steps:
       - name: "Build Docker Image"
         uses: "docker/build-push-action@v5"
         with:
           load: true
-          tags: "distcc-docker:${{ env.RUNS_ON }}"
+          tags: "distcc-docker:${{ env.IMAGE_TAG }}"
       - name: "Test starting the container"
         run: |
           docker run \
             --init \
             --rm \
-            "distcc-docker:${{ env.RUNS_ON }}" \
+            "distcc-docker:${{ env.IMAGE_TAG }}" \
               --jobs $(nproc) \
               -- \
               bash -c \
@@ -83,7 +83,7 @@ jobs:
             --publish "3632:3632/tcp" \
             --publish "3633:3633/tcp" \
             --rm \
-            "distcc-docker:${{ env.RUNS_ON }}" \
+            "distcc-docker:${{ env.IMAGE_TAG }}" \
               --jobs $(nproc) \
               -- \
                 bash -c "set -x; sleep 120; exit;"
@@ -111,7 +111,7 @@ jobs:
             --publish "3632:3632/tcp" \
             --publish "3633:3633/tcp" \
             --rm \
-            "distcc-docker:${{ env.RUNS_ON }}" \
+            "distcc-docker:${{ env.IMAGE_TAG }}" \
               --jobs $(nproc) \
               -- \
                 bash -c "set -x; sleep 120; exit;"
@@ -155,4 +155,4 @@ jobs:
         uses: "docker/build-push-action@v5"
         with:
           push: true
-          tags: "ghcr.io/${{ github.actor }}/distcc-docker:${{ env.RUNS_ON }}"
+          tags: "ghcr.io/${{ github.actor }}/distcc-docker:${{ env.IMAGE_TAG }}"
