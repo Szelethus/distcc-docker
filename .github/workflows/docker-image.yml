@@ -143,16 +143,26 @@ jobs:
             echo "Unexpected error code obtained!" >&2
             exit 1
           fi
+      # GHCR (and the OCI spec) require the repository path to be entirely
+      # lowercase, but "github.actor" preserves the account's original casing
+      # (e.g. "Szelethus"). GitHub Actions expressions have no lowercasing
+      # function, so fold the owner to lowercase here via Bash and expose it
+      # for the login and push steps below. (Computed unconditionally -- it is
+      # a cheap string op; the steps that use it remain gated.)
+      - name: "Compute lowercase image owner for GHCR"
+        id: "owner"
+        run: |
+          echo "name=${GITHUB_ACTOR,,}" >> "$GITHUB_OUTPUT"
       - name: "Log in to GitHub Container Registry (GHCR)"
         if: "github.ref == 'refs/heads/master' && github.event_name == 'workflow_dispatch' && inputs.release"
         uses: "docker/login-action@v3"
         with:
           registry: "ghcr.io"
-          username: "${{ github.actor }}"
+          username: "${{ steps.owner.outputs.name }}"
           password: "${{ secrets.GITHUB_TOKEN }}"
       - name: "Upload image to GHCR"
         if: "github.ref == 'refs/heads/master' && github.event_name == 'workflow_dispatch' && inputs.release"
         uses: "docker/build-push-action@v5"
         with:
           push: true
-          tags: "ghcr.io/${{ github.actor }}/distcc-docker:${{ env.IMAGE_TAG }}"
+          tags: "ghcr.io/${{ steps.owner.outputs.name }}/distcc-docker:${{ env.IMAGE_TAG }}"
