@@ -102,13 +102,9 @@ jobs:
           docker kill "distcc-1"
 
           # "docker kill" only sends the signal; with "--rm" the container and
-          # its published-port bindings are torn down asynchronously. Block on
-          # "docker wait" for the container to actually exit, then poll (with a
-          # bounded number of retries) until the host port is released so the
-          # next step can rebind 3632/3633.
-          docker wait "distcc-1" || true
-          for _ in $(seq 1 30); do
-            ss -ltn | grep -q ':3632 ' || break
+          # its published-port bindings are torn down asynchronously. Wait for
+          # the name to disappear so the next step can rebind 3632/3633.
+          while docker ps -a --format '{{.Names}}' | grep -qx "distcc-1"; do
             sleep 1
           done
       - name: "Test compilation in the container"
@@ -148,14 +144,6 @@ jobs:
           curl "http://localhost:3633" | grep "dcc_compile_ok 1"
 
           docker kill "distcc-1"
-
-          # Block on "docker wait" for the container to actually exit, then poll
-          # (with a bounded number of retries) until the host port is released.
-          docker wait "distcc-1" || true
-          for _ in $(seq 1 30); do
-            ss -ltn | grep -q ':3632 ' || break
-            sleep 1
-          done
 
           /usr/bin/g++ main.o -o main
 
