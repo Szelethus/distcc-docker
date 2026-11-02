@@ -115,12 +115,16 @@ jobs:
           sudo apt-get install distcc g++ --no-install-recommends
           sudo update-distcc-symlinks
 
+          # Publish to distinct host ports (3642/3643) so this container's
+          # bindings cannot clash with the previous step's container, whose
+          # 3632/3633 host ports may still be releasing asynchronously under
+          # "--rm". The container-internal ports stay 3632/3633.
           docker run \
             --detach \
             --init \
             --name "distcc-1" \
-            --publish "3632:3632/tcp" \
-            --publish "3633:3633/tcp" \
+            --publish "3642:3632/tcp" \
+            --publish "3643:3633/tcp" \
             --rm \
             "distcc-docker:${{ env.IMAGE_TAG }}" \
               --jobs $(nproc) \
@@ -128,11 +132,11 @@ jobs:
                 bash -c "set -x; sleep 120; exit;"
 
           sleep 10
-          curl "http://localhost:3633"
+          curl "http://localhost:3643"
 
           echo "int main() { return MY_EXIT_CODE; }" >> main.cpp
 
-          DISTCC_HOSTS="127.0.0.1:3632/$(nproc),lzo" \
+          DISTCC_HOSTS="127.0.0.1:3642/$(nproc),lzo" \
             distcc /usr/bin/g++ \
             -D MY_EXIT_CODE=42 \
             -c \
@@ -141,7 +145,7 @@ jobs:
 
           rm -v main.cpp
 
-          curl "http://localhost:3633" | grep "dcc_compile_ok 1"
+          curl "http://localhost:3643" | grep "dcc_compile_ok 1"
 
           docker kill "distcc-1"
 
